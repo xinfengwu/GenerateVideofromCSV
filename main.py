@@ -37,7 +37,7 @@ def main():
     img_mp3_to_mp4(mp3_folder, img_folder, mp4_folder)
     
 
-# 暂停 1 秒
+# 暂停 5 秒
     time.sleep(5)
 
 

@@ -213,21 +213,25 @@ def img_mp3_to_mp4(mp3_folder, img_folder, mp4_folder):
 # 将多个短视频合成为一个视频
 def concatenate_mp4_files(folder_path, output_file):
     # 获取文件夹中所有的 MP4 文件,
-    files = []
+    mp4_files = []
     for file in os.listdir(folder_path):
         if file.endswith('.mp4'):
             # print(file)
-            files.append(os.path.join(folder_path, file))
+            mp4_files.append(os.path.join(folder_path, file))
     # 并使用 .sort() 方法进行排序（直接修改原始列表）
-    files.sort()
-    # 生成输入文件列表
-    input_files = '|'.join(files)
-    # print(input_files)
+    mp4_files.sort()
+    
+    # 创建并写入文件列表
+    with open('mp4_filelist.txt', 'w') as mp4_filelist:
+        for mp4_file in mp4_files:
+            mp4_filelist.write(f"file '{os.path.join(folder_path, mp4_file)}'\n")
+    print("File list saved to mp4_filelist.txt")
     
     # 构建 FFmpeg 命令
-    ffmpeg_cmd = "sudo ffmpeg -i concat:" +input_files+ " -c copy -bsf:a aac_adtstoasc -movflags +faststart " + output_file
-    # print(ffmpeg_cmd)
-    # 执行 FFmpeg 命令
-    subprocess.call(ffmpeg_cmd, shell=True)
+    ffmpeg_command = ['ffmpeg', '-f', 'concat', '-safe', '0', '-i', 'mp4_list.txt', '-c', 'copy', '-y', 'output.mp4']
+
+    # 运行FFmpeg命令合并视频并覆盖已有的output.mp4
+    subprocess.call(ffmpeg_command, shell=True)
+    print("Videos have been merged into output.mp4")
 
 
