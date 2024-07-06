@@ -11,10 +11,11 @@ from pdf2image.exceptions import (
     PDFPageCountError,
     PDFSyntaxError
 )
+
 import subprocess
 from PIL import Image
 from pptx.util import Pt
-import time
+
 
 # 读取csv文件
 
@@ -28,10 +29,7 @@ def read_csv_data(file_path):
 
 
 # 创建文件夹
-def create_folder(folder_name):
-    # 构建文件夹路径
-    folder_path = os.path.join(os.getcwd(), folder_name)
-    
+def create_folder(folder_path):
     # 检查目录是否存在
     if not os.path.exists(folder_path):
         # 如果不存在，创建目录
@@ -42,6 +40,7 @@ def create_folder(folder_name):
         empty_folder(folder_path)
         print(f"文件夹 '{folder_path}' 已清空！")
     return folder_path
+    
 
 # 删除空文件
 def empty_folder(folder_path):
@@ -55,19 +54,38 @@ def empty_folder(folder_path):
         # 如果是文件夹，则递归调用 empty_folder 函数清空该文件夹
         elif os.path.isdir(file_path):
             empty_folder(file_path)
+            
 
 # 按行生成语音
-def text_to_mp3(row,output_folder_path):
-    # print(gtts.lang.tts_langs()) 输出支持的语言
-    try:
-        tts = gtts.gTTS(row['kanji'].strip(), lang='ja')  ##  request google to get synthesis
-        output_file_path = output_folder_path +'/'+ row['index'].strip()+'.mp3'
-        if not os.path.exists(output_file_path):
-            tts.save(output_file_path)  ##  save audio
-    except Exception as e:
+def text_to_mp3(keyword, output_file):
+    if not os.path.exists(output_file):
+        try:
+        # print(gtts.lang.tts_langs()) 输出支持的语言
+            tts = gtts.gTTS(keyword, lang='ja')  ##  request google to get synthesis
+            tts.save(output_file)  ##  save audio
+        except Exception as e:
+            
+            # line = row['kanji']
+            print(f"转换 '{row['kanji'].strip()}' 出现错误：{e}")
+            
         
-        # line = row['kanji']
-        print(f"转换 '{row['kanji'].strip()}' 出现错误：{e}")
+def create_silent_mp3(duration, output_file):
+    # Construct the ffmpeg command
+    command = [
+        'ffmpeg', 
+        '-loglevel', 'error',
+        '-f', 'lavfi', 
+        '-i', 'anullsrc=r=44100:cl=stereo', 
+        '-t', str(duration), 
+        '-y', # 覆盖原有文件
+        output_file
+    ]
+
+    # Run the command
+    subprocess.run(command, check=True)
+    print("Done! Create silent mp3")
+    return output_file
+    
     
 # 定义一个函数，将数据填入幻灯片
 def fill_slide(slide, row):
@@ -80,7 +98,7 @@ def fill_slide(slide, row):
 
 
 # csv to ppt
-def csv_to_ppt(data, ppt_template, output_ppt):
+def create_ppt_with_csv(data, ppt_template, output_ppt):
     prs = Presentation(ppt_template)
     new_prs = Presentation()
 
@@ -98,7 +116,6 @@ def csv_to_ppt(data, ppt_template, output_ppt):
     print(f'幻灯片已保存为 {output_ppt}')
 
 
-
 # 复制幻灯片
 def duplicate_slide(prs, index):
     slide_to_copy = prs.slides[index]
@@ -111,6 +128,7 @@ def duplicate_slide(prs, index):
         new_slide.shapes._spTree.insert_element_before(newel, 'p:extLst')
 
     return new_slide
+    
 
 # 删除幻灯片
 def delete_slide(prs, slide_index):
@@ -129,6 +147,7 @@ def find_shape_by_name(shapes, name):
         # print(shape.shape_id)
         if shape.name == name:
             return shape
+            
 
 # 修改文字
 def add_text(shape, text,):
@@ -142,10 +161,38 @@ def add_text(shape, text,):
     font.bold = True
     
 # 将ppt转化成pdf
-def ppt_to_pdf(ppt_file):
-    # 将ppt转化成pdf
-    cmdLine = "soffice --headless --convert-to pdf " + ppt_file
-    subprocess.call(cmdLine, shell=True)
+def ppt_to_pdf_by_soffice(ppt_file, pdf_folder, pdf_file):
+    # kill all the soffice
+    # kill_cmd = "ps aux | grep -i office | awk {'print $2'} | xargs kill -9"
+    kill_soffice_cmd = "killall soffice.bin"
+    # subprocess.call(kill_cmd, shell=True)
+    soffice_cmd = "soffice --headless --convert-to pdf " + ppt_file + " --outdir " + pdf_folder
+    print("ppt to pdf")
+    subprocess.call(soffice_cmd, shell=True)
+    # subprocess.call(kill_cmd, shell=True)
+    # name, ext = os.path.splitext(ppt_file)
+    # pdf_file = name + ".pdf"
+    print(f'幻灯片已导出为PDF ')
+    return pdf_file
+    
+    
+# ppt to pdf by pptxtopdf
+# pip install comtypes only for windows
+# pip install pptxtopdf
+def ppt_to_pdf_for_windows():
+    convert(ppt_file, output_dir)
+    
+    
+# ppt to pdf by unoconv on linux
+# sudo apt-get install unoconv
+def ppt_to_pdf_by_unoconv(ppt_file):
+    unoconv_cmd = [
+        "unoconv -f pdf",
+        "-o",
+        "./",
+        ppt_file
+    ]
+    subprocess.call(unoconv_cmd, shell=True)
     name, ext = os.path.splitext(ppt_file)
     pdf_file = name + ".pdf"
     print(f'幻灯片已导出为PDF ')
@@ -154,7 +201,8 @@ def ppt_to_pdf(ppt_file):
     
 # 将pdf转化成jpg
 def pdf_to_img(pdf_file,imgs_folder):
-    pages = convert_from_path(pdf_file, first_page=1)
+    pages = convert_from_path(pdf_file, first_page=0)
+    print("Pages done")
     for img in pages:
         img_path = imgs_folder + '/' + str(pages.index(img)+1) + ".jpg"
         img.save(img_path , quality=100)
@@ -165,6 +213,7 @@ def filter_files_by_extension(folder, extension):
     # 获取指定文件夹中特定后缀名的文件列表
     file_list = [file for file in os.listdir(folder) if file.endswith(extension)]
     return file_list
+    
 
 def compare_mp3_and_img_files(mp3_folder, img_folder):
     # 筛选出 mp3_folder 中所有的 mp3 文件和 img_folder 中所有的 img 文件
@@ -184,50 +233,136 @@ def compare_mp3_and_img_files(mp3_folder, img_folder):
     # 找出只在 img 文件夹中的文件名
     unique_to_img = img_set - mp3_set
     # 打印结果
-    print(f'共同的文件名: {common_files}')
-    print(f'只在 mp3 文件夹中的文件名: {unique_to_mp3}')
-    print(f'只在 img 文件夹中的文件名: {unique_to_img}')
+    # print(f'共同的文件名: {common_files}')
+    # print(f'只在 mp3 文件夹中的文件名: {unique_to_mp3}')
+    # print(f'只在 img 文件夹中的文件名: {unique_to_img}')
 
     return common_files, unique_to_mp3, unique_to_img
+    
 
+# 获取文件夹下所有文件的文件名和扩展名，并保存到set中
+def get_mp4_filenames(folder_path):
+    filenames_set = set()
+    
+    # 遍历文件夹中的所有文件
+    for root, dirs, files in os.walk(folder_path):
+        for file in files:
+            filename, extension = os.path.splitext(file)
+            if extension == ".mp4":
+                filenames_set.add(filename)
+    
+    return filenames_set
+    
+    
+# 将set里元素转换成整型后排序
+def sort_filenames_as_integers(filenames_set):
+    # 将文件名转换为整型并排序
+    try:
+        filenames_list = sorted(int(filename) for filename in filenames_set)
+    except ValueError:
+        raise ValueError("Some filenames are not integers and cannot be converted.")
+    
+    # 转换回字符串（如果需要保持字符串格式）
+    sorted_filenames = [str(filename) for filename in filenames_list]
+    
+    return sorted_filenames
+    
+
+def add_path_to_filenames(folder_path, filenames):
+    full_paths = []
+    for filename in filenames:
+        full_path = os.path.join(folder_path, filename + '.mp4')
+        full_paths.append(full_path)
+    return full_paths
+    
+
+# 创建mp4_filelist.txt
+def create_mp4_filelist(folder_path):
+    # 获取文件夹中所有的 MP4 文件,
+    mp4_filenames_set = get_mp4_filenames(folder_path)
+    
+    # 排序
+    sorted_mp4_filenames = sort_filenames_as_integers(mp4_filenames_set)
+    
+    # 组成文件完整路径
+    mp4_files = add_path_to_filenames(folder_path, sorted_mp4_filenames)
+    
+    return mp4_files
+    
+    
+# 将列表中的每个元素重复 n 次
+def repeat_elements(input_list, n):
+    # 使用列表推导式将每个元素重复 n 次
+    return [item for item in input_list for _ in range(n)]
+    
+    
+# 将列表中的每个元素重复n次，并加上间隔视频
+def add_elements_with_silence(input_list, silence_file):
+    result = []
+    for item in input_list:
+        result.append(item)
+        result.append(silence_file)
+    
+    return result
+    
+
+# 创建空白静音视频
+def create_silent_video(duration, size, output_file):
+    # 创建一个白色的静音视频
+    # :s=2204x1240
+    ffmpeg_command = (
+        f"ffmpeg -loglevel error -f lavfi -i color=c=white:s={size[0]}x{size[1]}:d={duration} " #2204x1240
+        f"-f lavfi -t 3 -i anullsrc=r=24000:cl=mono "
+        f" -c:v libx264 -c:a aac -y {output_file}"
+    )
+    # -i input.mp4：指定输入视频文件。
+    # -f lavfi -t 3 -i anullsrc=r=44100:cl=stereo：
+    # -f lavfi：指定输入格式为Libavfilter。
+    # -t 3：将输入流的持续时间限制为3秒。
+    # -i anullsrc=r=44100:cl=stereo：使用anullsrc滤镜生成一个静音音频流，采样率为44100 Hz，立体声。
+    # -c:v copy：直接复制视频流，不重新编码。
+    # -c:a aac：将音频流编码为AAC格式。
+    subprocess.run(ffmpeg_command, shell=True, check=True)  
+    
 
 # img + mp3 ---> video
-def img_mp3_to_mp4(mp3_folder, img_folder, mp4_folder):
-    # 执行比较
-    common_files, unique_to_mp3, unique_to_img = compare_mp3_and_img_files(mp3_folder, img_folder)
-    
-    for name in common_files:
-        mp3_file = mp3_folder + '/' + name + '.mp3'
-        img_file = img_folder + '/' + name + '.jpg'
-        mp4_file = mp4_folder + '/' + name + '.mp4'
-        ffmpeg_cmd = "ffmpeg \
-        -i " + mp3_file + \
-        " -loop 1 -i " + img_file + \
-        " -vcodec libx264 -pix_fmt yuv420p -shortest -y " \
-        " -vf 'scale=2204:1240' " \
-        +  mp4_file
-        # print(ffmpeg_cmd)
-        subprocess.call(ffmpeg_cmd, shell=True)
-
-
-# 将多个短视频合成为一个视频
-def concatenate_mp4_files(folder_path, output_file):
-    # 获取文件夹中所有的 MP4 文件,
-    files = []
-    for file in os.listdir(folder_path):
-        if file.endswith('.mp4'):
-            # print(file)
-            files.append(os.path.join(folder_path, file))
-    # 并使用 .sort() 方法进行排序（直接修改原始列表）
-    files.sort()
-    # 生成输入文件列表
-    input_files = '|'.join(files)
-    # print(input_files)
-    
-    # 构建 FFmpeg 命令
-    ffmpeg_cmd = "sudo ffmpeg -i concat:" +input_files+ " -c copy -bsf:a aac_adtstoasc -movflags +faststart " + output_file
+def img_mp3_to_mp4(mp3_file, img_file, size, mp4_file):
+    # print("img_mp3_to_mp4")
+    ffmpeg_cmd = (
+        f"ffmpeg -loglevel error  -i {mp3_file} "
+        f" -loop 1 -i {img_file}"
+        f" -vcodec libx264 -pix_fmt yuv420p -shortest -y "
+        f" -vf 'scale={size[0]}:{size[1]}' {mp4_file}"
+    )
     # print(ffmpeg_cmd)
-    # 执行 FFmpeg 命令
     subprocess.call(ffmpeg_cmd, shell=True)
 
+    
+# img ---> video
+def image_to_video(image_path, size, output_file):
+    # FFmpeg 命令
+    # -vf 'scale=2204:1240'
+    ffmpeg_command = (
+        f"ffmpeg -loglevel error -loop 1 -t 3 -i {image_path}"
+        f" -f lavfi -i anullsrc=cl=mono:r=24000 -shortest -y "
+        f" -vf 'scale={size[0]}:{size[1]}' {output_file}"
+        
+    )
+    
+    # 运行 FFmpeg 命令
+    subprocess.run(ffmpeg_command, shell=True, check=True)
+        
+
+# 将多个短视频合成为一个视频
+def concatenate_mp4_files(input_txt, output_file):
+    
+    # 构建 FFmpeg 命令
+    ffmpeg_command = "ffmpeg -loglevel error -f concat -segment_time_metadata 1 -safe 0 -i " \
+        + input_txt + \
+        " -vf select=concatdec_select -af aselect=concatdec_select,aresample=async=1 -y "\
+        + output_file
+    
+    # 运行FFmpeg命令合并视频并覆盖已有的output.mp4
+    subprocess.call(ffmpeg_command, shell=True)
+    print("Videos have been merged into output.mp4")
 
