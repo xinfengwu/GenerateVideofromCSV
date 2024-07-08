@@ -31,7 +31,7 @@ def create_folder(folder_path):
     else:
         print(f"文件夹 '{folder_path}' 已存在！")
         empty_folder(folder_path)
-        print(f"文件夹 '{folder_path}' 已清空！")
+        print(f"文件夹 '{folder_path}' 里的空文件已清空！")
     return folder_path
     
 
@@ -59,7 +59,14 @@ def read_csv_data(file_path):
     return data     
 
 
-def create_ppt_with_csv(data, ppt_template, bg_img_path, output_ppt):
+def create_ppt_with_csv(data, ppt_template, ppt_type, bg_img_path, output_ppt):
+    """
+    ppt_type:
+        0: 封面cover
+        1: 主体body
+        3: 封底back_cover
+    """
+    
     prs = Presentation(ppt_template)
 
     # 遍历 CSV 文件中的每条记录，创建对应的幻灯片
@@ -67,7 +74,15 @@ def create_ppt_with_csv(data, ppt_template, bg_img_path, output_ppt):
         # 从模板创建一张新的幻灯片
         new_slide = duplicate_slide(prs, 0, bg_img_path)
         # 填充文本
-        fill_slide(new_slide, row)
+        if ppt_type == 0:
+            fill_cover_slide(new_slide, row)
+        elif ppt_type == 1:
+            fill_body_slide(new_slide, row)
+        elif ppt_type == 2:
+            # do sth
+            pass
+        else:
+            print("ppt_type 值异常")
 
     # 删除模版幻灯片
     delete_slide(prs,0)
@@ -85,7 +100,7 @@ def duplicate_slide(prs, index, bg_img_path):
     new_slide = prs.slides.add_slide(slide_to_copy.slide_layout)
     
     # 设置背景图片
-    if bg_img_path:
+    if os.path.isfile(bg_img_path) and is_image_file(bg_img_path):
         set_background_image(prs, new_slide, bg_img_path)
     
     # create images dict
@@ -94,6 +109,12 @@ def duplicate_slide(prs, index, bg_img_path):
     # 复制各种形状
     for shape in slide_to_copy.shapes:
         # 使用 shape_type 属性判断形状类型
+        """
+            1: MSO_SHAPE_TYPE.AUTO_SHAPE
+            5: MSO_SHAPE_TYPE.PICTURE
+            17: MSO_SHAPE_TYPE.TEXT_BOX
+            
+        """
         if shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
             # print("This is a picture.")
             # save image
@@ -101,7 +122,7 @@ def duplicate_slide(prs, index, bg_img_path):
                 f.write(shape.image.blob)
             # add image to dict
             imgDict[shape.name+'.jpg'] = [shape.left, shape.top, shape.width, shape.height]
-        elif shape.shape_type == 1: # MSO_SHAPE_TYPE.AUTO_SHAPE:
+        elif shape.shape_type == 1 or shape.shape_type == 17:
             # print("This is a AUTO_SHAPE.")
             el = shape.element
             newel = copy.deepcopy(el)
@@ -118,14 +139,27 @@ def duplicate_slide(prs, index, bg_img_path):
     return new_slide
     
     
+def is_image_file(file_path):
+    # 定义常见的图像文件扩展名
+    image_extensions = ('.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.tif', '.webp')
+    
+    # 检查文件扩展名是否在定义的图像扩展名中
+    return file_path.lower().endswith(image_extensions)
+    
+    
 # 将数据填入幻灯片
-def fill_slide(slide, row):
+def fill_body_slide(slide, row):
     slide_title = find_shape_by_name(slide.shapes,'index')
     add_text(slide_title,row['index'])
     slide_title = find_shape_by_name(slide.shapes,'hiragana')
     add_text(slide_title,row['hiragana'])
     slide_title = find_shape_by_name(slide.shapes,'kanji')
     add_text(slide_title,row['kanji'])
+    
+    
+def fill_cover_slide(slide, row):
+    slide_title = find_shape_by_name(slide.shapes,'Lesson')
+    add_text(slide_title,row['lesson_name'])
 
 
 # 查找文本框
@@ -140,6 +174,7 @@ def find_shape_by_name(shapes, name):
 def add_text(shape, text,):
     tf = shape.text_frame
     p = tf.paragraphs[0].runs
+    p[0].text = ""
     p[0].text = text if text else ''
 
    
@@ -222,7 +257,8 @@ def filter_files_by_extension(folder, extension):
 
 # 按行生成语音
 def text_to_mp3(keyword, language, output_file):
-    if not os.path.exists(output_file):
+    # mp3文件不存在或是空文件
+    if (not os.path.isfile(output_file)) or os.path.getsize(output_file) == 0:
         try:
         # print(gtts.lang.tts_langs()) 输出支持的语言
             tts = gtts.gTTS(keyword, lang=language)  ##  request google to get synthesis
