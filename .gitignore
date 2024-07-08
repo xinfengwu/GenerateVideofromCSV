@@ -1,10 +1,10 @@
 # Personal filter
-Case1-30天背完小学英语单词/section_mp4/
-Case1-新版中日标准日本语初级/Lesson_*/
-Case1-新版中日标准日本语初级/section_*/
-Case1-新版中日标准日本语初级/*.docx
-Case3-中上级日语影子跟读/
-Case3-初中级日语影子跟读/
+*.mp4
+*.mp3
+**/*img/
+**/pdf/
+**/Lesson_*/
+
 
 
 

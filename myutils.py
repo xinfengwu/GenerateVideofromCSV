@@ -59,49 +59,58 @@ def read_csv_data(file_path):
     return data     
 
 
-def create_ppt_with_csv(data, ppt_template, ppt_type, bg_img_path, output_ppt):
+def create_ppt_with_csv(data, src_ppt_prs, slide_index, bg_img_path, output_ppt):
     """
-    ppt_type:
-        0: 封面cover
-        1: 主体body
-        3: 封底back_cover
+    slide_index:
+        1: 第1张幻灯片
+        2: 第2张幻灯片
+        3: 第3张幻灯片
+        ...
     """
     
-    prs = Presentation(ppt_template)
+    # prs = Presentation(ppt_template)
+    # 创建一个新的PPTX文件
+    new_prs = Presentation()
+    # 设置新PPTX的方向和源PPTX一致
+    new_prs.slide_width = src_ppt_prs.slide_width
+    new_prs.slide_height = src_ppt_prs.slide_height
 
     # 遍历 CSV 文件中的每条记录，创建对应的幻灯片
     for row in data:
         # 从模板创建一张新的幻灯片
-        new_slide = duplicate_slide(prs, 0, bg_img_path)
+        new_slide = duplicate_slide(src_ppt_prs, slide_index, bg_img_path, new_prs)
         # 填充文本
-        if ppt_type == 0:
-            fill_cover_slide(new_slide, row)
-        elif ppt_type == 1:
-            fill_body_slide(new_slide, row)
-        elif ppt_type == 2:
-            # do sth
-            pass
+        if slide_index == 1:
+            fill_slide1(new_slide, row)
+        elif slide_index == 2:
+            fill_slide2(new_slide, row)
+        elif slide_index == 3:
+            fill_slide3(new_slide, row)
         else:
             print("ppt_type 值异常")
 
     # 删除模版幻灯片
-    delete_slide(prs,0)
+    # delete_slide(prs,0)
     # 保存修改后的幻灯片
-    prs.save(output_ppt)
+    new_prs.save(output_ppt)
     # print(f'幻灯片已保存为 {output_ppt}')
-    return prs
+    return new_prs
 
    
 # 复制幻灯片
-def duplicate_slide(prs, index, bg_img_path):
-    slide_to_copy = prs.slides[index]
+def duplicate_slide(src_ppt_prs, index, bg_img_path, new_ppt_prs):
+    slide_to_copy = src_ppt_prs.slides[int(index)-1]
+    # print(slide_to_copy.slide_id)
+    # print(src_ppt_prs.slides[index].name)
 
     # Create a new slide object
-    new_slide = prs.slides.add_slide(slide_to_copy.slide_layout)
+    slide_layout = new_ppt_prs.slide_layouts[5]  # 使用一个空白布局
+    # new_slide = new_ppt_prs.slides.add_slide(slide_to_copy.slide_layout)
+    new_slide = new_ppt_prs.slides.add_slide(slide_layout)
     
     # 设置背景图片
     if os.path.isfile(bg_img_path) and is_image_file(bg_img_path):
-        set_background_image(prs, new_slide, bg_img_path)
+        set_background_image(new_ppt_prs, new_slide, bg_img_path)
     
     # create images dict
     imgDict = {}
@@ -111,10 +120,12 @@ def duplicate_slide(prs, index, bg_img_path):
         # 使用 shape_type 属性判断形状类型
         """
             1: MSO_SHAPE_TYPE.AUTO_SHAPE
-            5: MSO_SHAPE_TYPE.PICTURE
+            6: GROUP
+            13: MSO_SHAPE_TYPE.PICTURE
             17: MSO_SHAPE_TYPE.TEXT_BOX
             
         """
+        #print(shape.shape_type)
         if shape.shape_type == MSO_SHAPE_TYPE.PICTURE:
             # print("This is a picture.")
             # save image
@@ -122,7 +133,7 @@ def duplicate_slide(prs, index, bg_img_path):
                 f.write(shape.image.blob)
             # add image to dict
             imgDict[shape.name+'.jpg'] = [shape.left, shape.top, shape.width, shape.height]
-        elif shape.shape_type == 1 or shape.shape_type == 17:
+        elif shape.shape_type == 1 or shape.shape_type == 6 or shape.shape_type == 17:
             # print("This is a AUTO_SHAPE.")
             el = shape.element
             newel = copy.deepcopy(el)
@@ -148,17 +159,21 @@ def is_image_file(file_path):
     
     
 # 将数据填入幻灯片
-def fill_body_slide(slide, row):
-    slide_title = find_shape_by_name(slide.shapes,'index')
+def fill_slide1(slide, row):
+    slide_title = find_shape_by_name(slide.shapes,'Slide_1_index')
     add_text(slide_title,row['index'])
-    slide_title = find_shape_by_name(slide.shapes,'hiragana')
+    slide_title = find_shape_by_name(slide.shapes,'Slide_1_hiragana')
     add_text(slide_title,row['hiragana'])
-    slide_title = find_shape_by_name(slide.shapes,'kanji')
+    slide_title = find_shape_by_name(slide.shapes,'Slide_1_kanji')
     add_text(slide_title,row['kanji'])
     
     
-def fill_cover_slide(slide, row):
-    slide_title = find_shape_by_name(slide.shapes,'Lesson')
+def fill_slide2(slide, row):
+    slide_title = find_shape_by_name(slide.shapes,'Slide_2_Lesson')
+    add_text(slide_title,row['lesson_name'])
+    
+def fill_slide3(slide, row):
+    slide_title = find_shape_by_name(slide.shapes,'Slide_3_Lesson_title')
     add_text(slide_title,row['lesson_name'])
 
 
@@ -210,15 +225,16 @@ def ppt_to_pdf_by_soffice(ppt_file, pdf_folder, pdf_file):
     return pdf_file
     
 
-def ppt_to_pdf_by_unoconv(ppt_file, body_pdf):
+def ppt_to_pdf_by_unoconv(ppt_file, output_pdf):
     # subprocess.call(['unoconv', '-f', 'pdf', '-o', pdf_folder, ppt_file])
-    unoconv_cmd = "unoconv -f pdf -o " + body_pdf + " " + ppt_file
+    unoconv_cmd = "unoconv -f pdf -o " + output_pdf + " " + ppt_file
     subprocess.call(unoconv_cmd, shell=True)
 
 # 将pdf转化成jpg
 def pdf_to_img(pdf_file, imgs_folder):
     pages = convert_from_path(pdf_file, first_page=0)
     for img in pages:
+        # print(pages.index(img))
         img_path = imgs_folder + '/' + str(pages.index(img)+1) + ".jpg"
         img.save(img_path , quality=100)
     # print(f'PDF已导出为图片 ')
@@ -324,29 +340,36 @@ def image_to_video(image_path, size, duration, output_file):
     subprocess.run(ffmpeg_command, shell=True, check=True)   
    
     
-# 创建mp4_filelist.txt
-def create_mp4_filelist(folder_path):
-    # 获取文件夹中所有的 MP4 文件,
-    mp4_filenames_set = get_mp4_filenames(folder_path)
+def sort_filelist(folder_path, extension):
+    """
+    对以下情形适用：
+        1.mp4
+        10.mp4
+        2.mp4
+        20.mp4
+
+    """
+
+    filenames_set = get_filenames_by_extension(folder_path, extension)
     
     # 排序
-    sorted_mp4_filenames = sort_filenames_as_integers(mp4_filenames_set)
+    sorted_filenames = sort_filenames_as_integers(filenames_set)
     
     # 组成文件完整路径
-    mp4_files = add_path_to_filenames(folder_path, sorted_mp4_filenames)
+    files = add_path_to_filenames(folder_path, sorted_filenames)
     
-    return mp4_files
+    return files
 
 
 # 获取文件夹下所有文件的文件名和扩展名，并保存到set中
-def get_mp4_filenames(folder_path):
+def get_filenames_by_extension(folder_path, extension):
     filenames_set = set()
     
     # 遍历文件夹中的所有文件
     for root, dirs, files in os.walk(folder_path):
         for file in files:
-            filename, extension = os.path.splitext(file)
-            if extension == ".mp4":
+            filename, ext = os.path.splitext(file)
+            if ext == extension:
                 filenames_set.add(filename)
     
     return filenames_set

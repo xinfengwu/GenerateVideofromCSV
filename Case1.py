@@ -12,11 +12,15 @@ def main():
     root_folder = create_folder(root_folder_path)
         
     section_csv_folder_name = "section_csv"
-    section_csv_folder_path = os.path.join(os.getcwd(), root_folder_name, section_csv_folder_name)
+    section_csv_folder_path = os.path.join(root_folder, section_csv_folder_name)
     covers_data = read_csv_data(os.path.join(root_folder, "covers.csv"))
     
+    ppt_template = os.path.join(os.getcwd(), "portrait_templates.pptx")
+    # 打开源PPTX文件
+    src_prs = Presentation(ppt_template)   
+    
     section_mp4_folder_name = "section_mp4"
-    section_mp4_folder_path = os.path.join(os.getcwd(), root_folder_name, section_mp4_folder_name)
+    section_mp4_folder_path = os.path.join(root_folder, section_mp4_folder_name)
     section_mp4_folder = create_folder(section_mp4_folder_path) 
     
     lessons = [
@@ -30,6 +34,7 @@ def main():
         "Lesson_24"
 
     ]
+    
     for lesson in lessons:
         """
         section_folder_name 
@@ -48,18 +53,17 @@ def main():
           
     # csv to ppt
         print("csv to ppt")
-        body_ppt_template = os.path.join(root_folder, "body_template.pptx")
+
         body_output_ppt = os.path.join(root_folder, "body.pptx")
         body_bg_img_path = ""
-        new_body_presentation = create_ppt_with_csv(word_data, body_ppt_template, 1, body_bg_img_path, body_output_ppt)
+        new_body_presentation = create_ppt_with_csv(word_data, src_prs, 1, body_bg_img_path, body_output_ppt)
         
         new_slide_width = new_body_presentation.slide_width
         new_slide_height = new_body_presentation.slide_height
 
-        covers_ppt_template = os.path.join(root_folder, "covers_template.pptx")
         covers_output_ppt = os.path.join(root_folder, "covers.pptx")
         covers_bg_img_path = os.path.join(root_folder, "cover.jpg")
-        new_covers_presentation = create_ppt_with_csv(covers_data, covers_ppt_template, 0, covers_bg_img_path, covers_output_ppt)
+        new_covers_presentation = create_ppt_with_csv(covers_data, src_prs, 2, covers_bg_img_path, covers_output_ppt)
         
 
     # ppt---> pdf ---> img
@@ -73,8 +77,9 @@ def main():
 
         body_img_folder = create_folder(os.path.join(section_folder, "body_img"))
         covers_img_folder = create_folder(os.path.join(section_folder, "covers_img"))
+
         pdf_to_img(body_pdf, body_img_folder)
-        pdf_to_img(covers_pdf,covers_img_folder)
+        pdf_to_img(covers_pdf, covers_img_folder)
         
         
     # csv to mp3
@@ -114,7 +119,7 @@ def main():
             
     # video1 + video2 + ... to videos
         print("video1 + video2 + ... to videos")
-        body_mp4_files = create_mp4_filelist(body_mp4_folder)
+        body_mp4_files = sort_filelist(body_mp4_folder, ".mp4")
         # 将列表里的每个视频文件重复3次
         repeated_mp4_files = repeat_elements(body_mp4_files, 3)
         # print(repeated_mp4_files)
@@ -147,9 +152,8 @@ def main():
         delete_file(body_output_ppt)
         delete_file(covers_output_ppt)
         delete_file(input_txt)
-        # delete_file(silence_file)
         
-        #delete_folder(section_mp4_folder)
+        # delete_folder(section_mp4_folder)
         print("Done: ", lesson)
         
     

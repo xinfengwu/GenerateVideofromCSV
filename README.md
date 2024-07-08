@@ -1,2 +1,3 @@
-# GenerateVideofromCSV
-This Repo is for my Japanese Learning. I hope to generate videos from text and upload to Youtube and share with the guys who are on it.
+# VideoGenerator
+
+In my daily life, I meet a lot of cases of generating videos. So, I created the repo to get it done.
