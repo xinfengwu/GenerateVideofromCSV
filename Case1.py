@@ -7,7 +7,7 @@ from myutils import *
 def main():
     # 构建项目文件夹路径
     # 新中日标准日本语上册
-    root_folder_name = "Case1-新版中日标准日本语初级" 
+    root_folder_name = "Case1-新版中日标准日本语初级-单词" 
     root_folder_path = os.path.join(os.getcwd(), root_folder_name)
     root_folder = create_folder(root_folder_path)
         
@@ -24,14 +24,7 @@ def main():
     section_mp4_folder = create_folder(section_mp4_folder_path) 
     
     lessons = [
-        "Lesson_17",
-        "Lesson_18",
-        "Lesson_19",
-        "Lesson_20",
-        "Lesson_21",
-        "Lesson_22",
-        "Lesson_23",
-        "Lesson_24"
+        "五十音图_49"
 
     ]
     

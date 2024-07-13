@@ -31,7 +31,7 @@ def create_folder(folder_path):
     else:
         print(f"文件夹 '{folder_path}' 已存在！")
         empty_folder(folder_path)
-        print(f"文件夹 '{folder_path}' 里的空文件已清空！")
+        print(f"文件夹 '{folder_path}' 里的空文件已删除！")
     return folder_path
     
 
@@ -78,7 +78,7 @@ def create_ppt_with_csv(data, src_ppt_prs, slide_index, bg_img_path, output_ppt)
     # 遍历 CSV 文件中的每条记录，创建对应的幻灯片
     for row in data:
         # 从模板创建一张新的幻灯片
-        new_slide = duplicate_slide(src_ppt_prs, slide_index, bg_img_path, new_prs)
+        new_slide = duplicate_slide(src_ppt_prs, slide_index, new_prs, bg_img_path)
         # 填充文本
         if slide_index == 1:
             fill_slide1(new_slide, row)
@@ -86,6 +86,10 @@ def create_ppt_with_csv(data, src_ppt_prs, slide_index, bg_img_path, output_ppt)
             fill_slide2(new_slide, row)
         elif slide_index == 3:
             fill_slide3(new_slide, row)
+        elif slide_index == 4:
+            fill_slide4(new_slide, row)
+        elif slide_index == 5:
+            fill_slide5(new_slide, row)
         else:
             print("ppt_type 值异常")
 
@@ -98,7 +102,7 @@ def create_ppt_with_csv(data, src_ppt_prs, slide_index, bg_img_path, output_ppt)
 
    
 # 复制幻灯片
-def duplicate_slide(src_ppt_prs, index, bg_img_path, new_ppt_prs):
+def duplicate_slide(src_ppt_prs, index, new_ppt_prs, bg_img_path=""):
     slide_to_copy = src_ppt_prs.slides[int(index)-1]
     # print(slide_to_copy.slide_id)
     # print(src_ppt_prs.slides[index].name)
@@ -167,7 +171,6 @@ def fill_slide1(slide, row):
     slide_title = find_shape_by_name(slide.shapes,'Slide_1_kanji')
     add_text(slide_title,row['kanji'])
     
-    
 def fill_slide2(slide, row):
     slide_title = find_shape_by_name(slide.shapes,'Slide_2_Lesson')
     add_text(slide_title,row['lesson_name'])
@@ -175,6 +178,18 @@ def fill_slide2(slide, row):
 def fill_slide3(slide, row):
     slide_title = find_shape_by_name(slide.shapes,'Slide_3_Lesson_title')
     add_text(slide_title,row['lesson_name'])
+    
+def fill_slide4(slide, row):
+    slide_title = find_shape_by_name(slide.shapes,'Slide_4_Book_title')
+    add_text(slide_title,row['cover_title'])
+
+def fill_slide5(slide, row):
+    slide_title = find_shape_by_name(slide.shapes,'Slide_5_index')
+    add_text(slide_title,row['序号'])
+    slide_title = find_shape_by_name(slide.shapes,'Slide_5_A_context')
+    add_text(slide_title,row['問句'])
+    slide_title = find_shape_by_name(slide.shapes,'Slide_5_B_context')
+    add_text(slide_title,row['答句'])
 
 
 # 查找文本框
@@ -276,11 +291,12 @@ def text_to_mp3(keyword, language, output_file):
     # mp3文件不存在或是空文件
     if (not os.path.isfile(output_file)) or os.path.getsize(output_file) == 0:
         try:
-        # print(gtts.lang.tts_langs()) 输出支持的语言
-            tts = gtts.gTTS(keyword, lang=language)  ##  request google to get synthesis
+            # print(gtts.lang.tts_langs()) 输出支持的语言
+            # Create a gTTS object
+            tts = gtts.gTTS(keyword, lang=language, slow=True)  #  request google to get synthesis
             tts.save(output_file)  #  save audio
         except Exception as e:
-            print(f"转换 '{row['kanji'].strip()}' 出现错误：{e}")
+            print(f"转换 '{keyword}' 出现错误：{e}")
 
 
 def set_video_resolution(slide_width, slide_height):
