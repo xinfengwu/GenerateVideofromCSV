@@ -165,11 +165,15 @@ def is_image_file(file_path):
 # 将数据填入幻灯片
 def fill_slide1(slide, row):
     slide_title = find_shape_by_name(slide.shapes,'Slide_1_index')
-    add_text(slide_title,row['index'])
+    add_text(slide_title,row['序号'])
     slide_title = find_shape_by_name(slide.shapes,'Slide_1_hiragana')
-    add_text(slide_title,row['hiragana'])
+    add_text(slide_title,row['平假名注音'])
     slide_title = find_shape_by_name(slide.shapes,'Slide_1_kanji')
-    add_text(slide_title,row['kanji'])
+    add_text(slide_title,row['日本語'])
+    slide_title = find_shape_by_name(slide.shapes,'Slide_1_english')
+    add_text(slide_title,row['英文'])
+    slide_title = find_shape_by_name(slide.shapes,'Slide_1_chinese')
+    add_text(slide_title,row['中文'])
     
 def fill_slide2(slide, row):
     slide_title = find_shape_by_name(slide.shapes,'Slide_2_Lesson')
@@ -181,7 +185,7 @@ def fill_slide3(slide, row):
     
 def fill_slide4(slide, row):
     slide_title = find_shape_by_name(slide.shapes,'Slide_4_Book_title')
-    add_text(slide_title,row['cover_title'])
+    add_text(slide_title,row['lesson_name'])
 
 def fill_slide5(slide, row):
     slide_title = find_shape_by_name(slide.shapes,'Slide_5_index')
@@ -190,6 +194,19 @@ def fill_slide5(slide, row):
     add_text(slide_title,row['問句'])
     slide_title = find_shape_by_name(slide.shapes,'Slide_5_B_context')
     add_text(slide_title,row['答句'])
+    
+    slide_title = find_shape_by_name(slide.shapes,'Slide_5_A_context_hiragana')
+    add_text(slide_title,row['問句-平仮名'])
+    slide_title = find_shape_by_name(slide.shapes,'Slide_5_B_context_hiragana')
+    add_text(slide_title,row['答句-平仮名'])
+    slide_title = find_shape_by_name(slide.shapes,'Slide_5_A_context_en')
+    add_text(slide_title,row['問句-英语'])
+    slide_title = find_shape_by_name(slide.shapes,'Slide_5_A_context_cn')
+    add_text(slide_title,row['問句-中文'])
+    slide_title = find_shape_by_name(slide.shapes,'Slide_5_B_context_en')
+    add_text(slide_title,row['答句-英语'])
+    slide_title = find_shape_by_name(slide.shapes,'Slide_5_B_context_cn')
+    add_text(slide_title,row['答句-中文'])
 
 
 # 查找文本框
@@ -293,7 +310,7 @@ def text_to_mp3(keyword, language, output_file):
         try:
             # print(gtts.lang.tts_langs()) 输出支持的语言
             # Create a gTTS object
-            tts = gtts.gTTS(keyword, lang=language, slow=True)  #  request google to get synthesis
+            tts = gtts.gTTS(keyword, lang=language, slow=False)  #  request google to get synthesis
             tts.save(output_file)  #  save audio
         except Exception as e:
             print(f"转换 '{keyword}' 出现错误：{e}")
@@ -427,6 +444,20 @@ def add_elements_with_silence(input_list, silence_file):
         result.append(silence_file)
     
     return result
+
+
+# 将多个mp3合成为一个
+def concatenate_mp3_files(input_txt, output_file):
+    
+    # 构建 FFmpeg 命令
+    ffmpeg_command = "ffmpeg -loglevel error -f concat -segment_time_metadata 1 -safe 0 -i " \
+        + input_txt + \
+        " -af aselect=concatdec_select,aresample=async=1 -y "\
+        + output_file
+    
+    # 运行FFmpeg命令合并视频并覆盖已有的output.mp3
+    subprocess.call(ffmpeg_command, shell=True)
+    #print(f"Audios have been merged into {output_file}")
     
     
 # 将多个短视频合成为一个视频
@@ -440,7 +471,7 @@ def concatenate_mp4_files(input_txt, output_file):
     
     # 运行FFmpeg命令合并视频并覆盖已有的output.mp4
     subprocess.call(ffmpeg_command, shell=True)
-    print("Videos have been merged into output.mp4")    
+    print("Videos have been merged into {output_file}")    
             
         
 # 删除单个文件

@@ -6,13 +6,13 @@ from myutils import *
 # 主函数
 def main():
     # 构建项目文件夹路径
-    root_folder_name = "Case2-新版中日标准日本语初级-句型-磨耳朵专项训练" 
+    root_folder_name = "Case2-新版中日标准日本语初级_句型_磨耳朵专项训练" 
     root_folder_path = os.path.join(os.getcwd(), root_folder_name)
     root_folder = create_folder(root_folder_path)
         
     lessons_csv_folder_name = "Lessons_csv"
     lessons_csv_folder_path = os.path.join(root_folder, lessons_csv_folder_name)
-    covers_data = read_csv_data(os.path.join(root_folder, "covers.csv"))
+    lessons_data = read_csv_data(os.path.join(root_folder, "lessons_data.csv"))
     
     ppt_template = os.path.join(os.getcwd(), "portrait_templates.pptx")
     # 打开源PPTX文件
@@ -20,29 +20,14 @@ def main():
     
     lessons_mp4_folder_name = "Lessons_mp4"
     lessons_mp4_folder_path = os.path.join(root_folder, lessons_mp4_folder_name)
-    lessons_mp4_folder = create_folder(lessons_mp4_folder_path) 
+    lessons_mp4_folder = create_folder(lessons_mp4_folder_path)
     
-    lessons = [
-        #"曜日に関する質問と回答_1", # 星期几
-        #"何時について質問と回答_2", # 几点
-        #"何時何分について質問と回答_3", # 几点几分
-        #"それは何ですか_4",
-        #"その本はだれのですか_5",
-        #"おいくつですか_6",
-        "7-これは本ですか",
-        "8-ここはどこですか",
-        "9-東京はどこですか",
-        "10-今日は土曜日ですか、月曜日ですか",
-
-    ]
+    # 创建静音mp3
+    silent_mp3 = os.path.join(root_folder, "silent.mp3")
+    create_silent_mp3(1, silent_mp3)
     
-    for lesson in lessons:
-        """
-        lessons_folder_name 
-        格式规则： index-foo
-        body_data,lessons_mp4的文件名依赖与它
-        """
-        lesson_folder_name = lesson
+    for lesson in lessons_data:
+        lesson_folder_name = lesson['lesson_name']
         lesson_folder_path = os.path.join(os.getcwd(), root_folder_name, lesson_folder_name)
         lesson_folder = create_folder(lesson_folder_path)
         pdf_folder = create_folder(os.path.join(lesson_folder, "pdf"))
@@ -51,12 +36,12 @@ def main():
         
         body_data = read_csv_data(os.path.join(lessons_csv_folder_path, lesson_folder_name+".csv"))
         
-        lesson_mp4 = os.path.join(root_folder, lessons_mp4_folder, lesson_folder_name+root_folder_name.split('-')[1]+".mp4")
+        lesson_mp4_filename = lesson_folder_name + '-' + root_folder_name.split('-')[1]+".mp4"
+        lesson_mp4 = os.path.join(root_folder, lessons_mp4_folder, lesson_mp4_filename)
       
         # Choose language and region
         lang = 'ja' # Language code (e.g., 'en', 'fr', 'jp')
-        # Choose language and region
-        #region = 'us'  # Region code (e.g., 'us', 'uk', 'jp')
+        
           
     # 封面封底 csv to video
         print("封面封底 csv to video")
@@ -72,7 +57,7 @@ def main():
         # cover_prs.save(covers_output_ppt)
         
         cover_bg_img_path = ""
-        new_cover_presentation = create_ppt_with_csv(covers_data, src_prs, 4, cover_bg_img_path, covers_output_ppt) # 复制模板中第4张幻灯片做封面slide
+        new_cover_presentation = create_ppt_with_csv(lessons_data, src_prs, 4, cover_bg_img_path, covers_output_ppt) # 复制模板中第4张幻灯片做封面slide
         
         # 转换封面pptx ---> pdf ---> img
         covers_pdf = os.path.join(pdf_folder, "covers.pdf")
@@ -84,11 +69,9 @@ def main():
         new_slide_height = new_cover_presentation.slide_height
         resolution = set_video_resolution(new_slide_width, new_slide_height)
         
-        index = lesson_folder_name.split("-")[0]
-        # index = '1'
-        cover_img = os.path.join(covers_img_folder, index+".jpg")
-        cover_mp4 = os.path.join(covers_mp4_folder, index+".mp4")
-        image_to_video(cover_img, resolution, 3, cover_mp4)
+        cover_img = os.path.join(covers_img_folder, lesson['index']+".jpg")
+        cover_mp4 = os.path.join(covers_mp4_folder, lesson['index']+".mp4")
+        image_to_video(cover_img, resolution, 5, cover_mp4)
         
         back_cover_img = os.path.join(root_folder, "back_cover.jpg")
         back_cover_mp4 = os.path.join(covers_mp4_folder, "back_cover.mp4")
@@ -107,14 +90,38 @@ def main():
              
         # csv to mp3
         print("csv to mp3")
-        body_mp3_folder = create_folder(os.path.join(lesson_folder, "body_mp3")) 
-        for row in body_data:
-            keyword = row['問句'].strip() + row['答句'].strip()
+        body_mp3_folder = create_folder(os.path.join(lesson_folder, "body_mp3"))
+        
+        for row in body_data:     
+            keyword = row['問句'].strip()
+            file_name_question = row['序号'].strip() + "_question.mp3"
+            output_file_question = os.path.join(body_mp3_folder, file_name_question)
+            text_to_mp3(keyword, lang, output_file_question)
+            
+            keyword = row['答句'].strip()
+            file_name_answer = row['序号'].strip() + "_answer.mp3"
+            output_file_answer = os.path.join(body_mp3_folder, file_name_answer)
+            text_to_mp3(keyword, lang, output_file_answer)
+            
+            mp3_list = []
+            mp3_list.append(output_file_question)
+            # 问句和答句之间有1秒的停顿
+            mp3_list.append(silent_mp3)
+            mp3_list.append(output_file_answer)
+            
+            # 将列表写入txt文件
+            input_mp3_txt = os.path.join(lesson_folder, "input_mp3.txt")
             file_name = row['序号'].strip() + ".mp3"
             output_file = os.path.join(body_mp3_folder, file_name)
-            # Choose language and region
-            region = 'us'  # Region code (e.g., 'us', 'uk', 'jp')
-            text_to_mp3(keyword, lang, output_file)
+            with open(input_mp3_txt, 'w') as file:
+                for item in mp3_list:
+                    file.write(f"file {item}\n")
+            # 合并多个mp3
+            concatenate_mp3_files(input_mp3_txt, output_file)
+            
+            #delete_file(output_file_question)
+            #delete_file(output_file_answer)
+            
                  
         # img + mp3 to video
         print("img + mp3 to video")
@@ -150,23 +157,24 @@ def main():
         result_files.append(back_cover_mp4)
         
         # 将列表写入txt文件
-        input_txt = os.path.join(lesson_folder, "input.txt")
-        with open(input_txt, 'w') as file:
+        input_mp4_txt = os.path.join(lesson_folder, "input_mp4.txt")
+        with open(input_mp4_txt, 'w') as file:
             for item in result_files:
                 file.write(f"file {item}\n")
         # print(result_files)
         # print("文件写入完成")
 
         # 合成 封面+正文+封底 视频
-        concatenate_mp4_files(input_txt, lesson_mp4)
+        concatenate_mp4_files(input_mp4_txt, lesson_mp4)
         
         # 删除临时文件及文件夹
         #delete_file(body_output_ppt)
         #delete_file(covers_output_ppt)
         #delete_file(input_txt)
         
-        # delete_folder(lessons_mp4_folder)
-        print("Done: ", lesson)
+        #delete_folder(lessons_mp4_folder)
+        delete_folder(lesson_folder)
+        print("Done: ", lesson['lesson_name'])
         
     
 # if __name__ == "__main__":

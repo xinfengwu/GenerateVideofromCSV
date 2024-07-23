@@ -1,50 +1,50 @@
-index,kanji,hiragana
-1,荷物,にもつ
-2,はがき,はがき
-3,切手,きって
-4,引き出し,ひきだし
-5,アルバム,アルバム
-6,タバコ,タバコ
-7,漫画,まんが
-8,ガレージ,ガレージ
-9,修理,しゅうり
-10,居酒屋,いざかや
-11,生ビール,なまビール
-12,焼き鳥,やきとり
-13,唐揚げ,からあげ
-14,肉じゃが,にくじゃが
-15,ボーリング,ボーリング
-16,髪,かみ
-17,象,ぞう
-18,昼,ひる
-19,ほか,ほか
-20,かかる,かかる
-21,咲く,さく
-22,泳ぐ,およぐ
-23,遊ぶ,あそぶ
-24,吸う,すう
-25,切る,きる
-26,だいたい,だいたい
-27,とりあえず,とりあえず
-28,どのぐらい,どのぐらい
-29,冊,さつ
-30,回,かい
-31,枚,まい
-32,個,こ
-33,杯,はい
-34,人,にん
-35,台,だい
-36,本,ほん
-37,頭,とう
-38,匹,ひき
-39,つ,つ
-40,着,ちゃく
-41,羽,わ
-42,番,ばん
-43,足,そく
-44,度,ど
-45,キロメートル,キロメートル
-46,皿,さら
-47,時間,じかん
-48,週間,しゅうかん
-49,か月,かげつ
+序号,日本語,平假名注音,中文,英文
+1,荷物,にもつ,行李、包裹,luggage, baggage
+2,はがき,はがき,明信片,postcard
+3,切手,きって,邮票,stamps
+4,引き出し,ひきだし,抽屉,drawer
+5,アルバム,アルバム,相册,album
+6,タバコ,タバコ,香烟,cigarettes
+7,漫画,まんが,漫画、卡通,comic
+8,ガレージ,ガレージ,车库,garage
+9,修理,しゅうり,修理、维修,repair
+10,居酒屋,いざかや,居酒屋,Japanese pub
+11,生ビール,なまビール,生啤酒,draft beer
+12,焼き鳥,やきとり,烤鸡肉串,grilled chicken skewers
+13,唐揚げ,からあげ,炸鸡、炸鸡块,Japanese-style fried chicken
+14,肉じゃが,にくじゃが,肉片炖土豆,meat and potato stew
+15,ボーリング,ボーリング,保龄球,bowling
+16,髪,かみ,头发,hair
+17,象,ぞう,大象,elephant
+18,昼,ひる,午间、白天,midday, daytime
+19,ほか,ほか,其他、另外、别处,other, another place
+20,かかる,かかる,花费、耗费、需要,to take (time/money)
+21,咲く,さく,开花、绽放、开放,to bloom
+22,泳ぐ,およぐ,游泳、泳,to swim
+23,遊ぶ,あそぶ,游玩、玩耍、玩,to play
+24,吸う,すう,吸、吸收、抽烟,to smoke, to suck in
+25,切る,きる,切、割、裁、截,to cut
+26,だいたい,だいたい,大概、差不多、大约,roughly, approximately
+27,とりあえず,とりあえず,姑且、暂且、暂时,for the time being, just in case
+28,どのぐらい,どのぐらい,多久,to what extent, how much
+29,冊,さつ,本、册、冊,counter for books
+30,回,かい,次数、回、次,counter for occurrences
+31,枚,まい,张、片、面,counter for flat objects (e.g., sheets of paper)
+32,個,こ,个、只、个,counter for general objects
+33,杯,はい,杯、盏、碗、钟,counter for cups, glasses
+34,人,にん,人、个、名,counter for people
+35,台,だい,台、台、辆,counter for machines, vehicles
+36,本,ほん,本、条、根,counter for long cylindrical objects
+37,頭,とう,头、个、头,counter for large animals (e.g., cattle)
+38,匹,ひき,匹、只、条,counter for small animals
+39,つ,つ,个、条、个,counter for small objects
+40,着,ちゃく,套、着、件、套,counter for suits of clothing
+41,羽,わ,羽、只、张,counter for birds, rabbits
+42,番,ばん,番、次、号,counter for turns, order
+43,足,そく,双、对、条,counter for pairs of footwear
+44,度,ど,度、次、回,counter for occurrences, times
+45,キロメートル,キロメートル,千米、公里,kilometer
+46,皿,さら,盘子、碟子、托盘,dish, plate
+47,時間,じかん,时间、钟头,time, hour
+48,週間,しゅうかん,周、星期、个星期,week
+49,か月,かげつ,个月,month

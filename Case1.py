@@ -13,7 +13,7 @@ def main():
         
     section_csv_folder_name = "section_csv"
     section_csv_folder_path = os.path.join(root_folder, section_csv_folder_name)
-    covers_data = read_csv_data(os.path.join(root_folder, "covers.csv"))
+    lessons_data = read_csv_data(os.path.join(root_folder, "lessons.csv"))
     
     ppt_template = os.path.join(os.getcwd(), "portrait_templates.pptx")
     # 打开源PPTX文件
@@ -23,18 +23,9 @@ def main():
     section_mp4_folder_path = os.path.join(root_folder, section_mp4_folder_name)
     section_mp4_folder = create_folder(section_mp4_folder_path) 
     
-    lessons = [
-        "五十音图_49"
-
-    ]
     
-    for lesson in lessons:
-        """
-        section_folder_name 
-        格式规则： prefix_index
-        word_data,section_mp4的文件名依赖与它
-        """
-        section_folder_name = lesson
+    for lesson in lessons_data:
+        section_folder_name = lesson['lesson_name']
         section_folder_path = os.path.join(os.getcwd(), root_folder_name, section_folder_name)
         section_folder = create_folder(section_folder_path)
         
@@ -47,16 +38,17 @@ def main():
     # csv to ppt
         print("csv to ppt")
 
-        body_output_ppt = os.path.join(root_folder, "body.pptx")
+        body_output_ppt = os.path.join(section_folder, "body.pptx")
         body_bg_img_path = ""
         new_body_presentation = create_ppt_with_csv(word_data, src_prs, 1, body_bg_img_path, body_output_ppt)
         
         new_slide_width = new_body_presentation.slide_width
         new_slide_height = new_body_presentation.slide_height
 
-        covers_output_ppt = os.path.join(root_folder, "covers.pptx")
-        covers_bg_img_path = os.path.join(root_folder, "cover.jpg")
-        new_covers_presentation = create_ppt_with_csv(covers_data, src_prs, 2, covers_bg_img_path, covers_output_ppt)
+        covers_output_ppt = os.path.join(section_folder, "covers.pptx")
+        # covers_bg_img_path = os.path.join(root_folder, "cover.jpg")
+        covers_bg_img_path = ""
+        new_covers_presentation = create_ppt_with_csv(lessons_data, src_prs, 2, covers_bg_img_path, covers_output_ppt)
         
 
     # ppt---> pdf ---> img
@@ -79,8 +71,9 @@ def main():
         print("csv to mp3")
         body_mp3_folder = create_folder(os.path.join(section_folder, "body_mp3")) 
         for row in word_data:
-            keyword = row['kanji'].strip()
-            file_name = row['index'].strip() + ".mp3"
+            #keyword = row['平假名注音'].strip()
+            keyword = row['日本語'].strip()
+            file_name = row['序号'].strip() + ".mp3"
             output_file = os.path.join(body_mp3_folder, file_name)
             text_to_mp3(keyword, lang, output_file)
             
@@ -100,10 +93,10 @@ def main():
         
         # 转换封面封底img---> video
         covers_mp4_folder = create_folder(os.path.join(section_folder, "covers_mp4"))
-        index = section_folder_name.split("_")[1]
-        cover_img = os.path.join(covers_img_folder, index+".jpg")
-        cover_mp4 = os.path.join(covers_mp4_folder, index+".mp4")
-        image_to_video(cover_img, resolution, 3, cover_mp4)
+        #index = section_folder_name.split("_")[1]
+        cover_img = os.path.join(covers_img_folder, lesson['index']+".jpg")
+        cover_mp4 = os.path.join(covers_mp4_folder, lesson['index']+".mp4")
+        image_to_video(cover_img, resolution, 5, cover_mp4)
         
         back_cover_img = os.path.join(root_folder, "back_cover.jpg")
         back_cover_mp4 = os.path.join(covers_mp4_folder, "back_cover.mp4")
@@ -131,7 +124,7 @@ def main():
         result_files.append(back_cover_mp4)
         
         # 将列表写入txt文件
-        input_txt = os.path.join(root_folder, "input.txt")
+        input_txt = os.path.join(section_folder, "input.txt")
         with open(input_txt, 'w') as file:
             for item in result_files:
                 file.write(f"file {item}\n")
@@ -142,12 +135,14 @@ def main():
         concatenate_mp4_files(input_txt, section_mp4)
         
         # 删除临时文件及文件夹
-        delete_file(body_output_ppt)
-        delete_file(covers_output_ppt)
-        delete_file(input_txt)
+        #delete_file(body_output_ppt)
+        #delete_file(covers_output_ppt)
+        #delete_file(input_txt)
         
         # delete_folder(section_mp4_folder)
-        print("Done: ", lesson)
+        delete_folder(section_folder)
+        
+        print("Done: ", lesson['lesson_name'])
         
     
 # if __name__ == "__main__":
