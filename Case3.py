@@ -33,7 +33,8 @@ def main():
     new_presentation = create_ppt_with_csv(covers_data, src_prs, 3, bg_img_path, covers_ppt)
 
 # ppt to pdf
-    ppt_to_pdf_by_unoconv(covers_ppt, pdf_file)
+    # ppt_to_pdf_by_unoconv(covers_ppt, pdf_file)
+    ppt_to_pdf_by_soffice(covers_ppt, root_folder, pdf_file)
     
 # pdf to img
     pdf_to_img(pdf_file, img_folder)

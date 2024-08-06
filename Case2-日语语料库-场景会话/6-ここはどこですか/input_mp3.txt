@@ -1,0 +1,3 @@
+file /home/dd/文档/VideoGenerator/Case2-日语语料库-场景会话/6-ここはどこですか/body_mp3/10_question.mp3
+file /home/dd/文档/VideoGenerator/Case2-日语语料库-场景会话/silent.mp3
+file /home/dd/文档/VideoGenerator/Case2-日语语料库-场景会话/6-ここはどこですか/body_mp3/10_answer.mp3

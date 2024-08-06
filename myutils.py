@@ -1,6 +1,8 @@
 import os
 import gtts
 from pptx import Presentation
+# pip install python-pptx
+
 import csv
 import copy
 import subprocess
@@ -11,6 +13,7 @@ from pdf2image.exceptions import (
     PDFPageCountError,
     PDFSyntaxError
 )
+# pip install pdf2image
 
 import subprocess
 from PIL import Image
@@ -471,7 +474,7 @@ def concatenate_mp4_files(input_txt, output_file):
     
     # 运行FFmpeg命令合并视频并覆盖已有的output.mp4
     subprocess.call(ffmpeg_command, shell=True)
-    print("Videos have been merged into {output_file}")    
+    print(f"Videos have been merged into {output_file}")    
             
         
 # 删除单个文件

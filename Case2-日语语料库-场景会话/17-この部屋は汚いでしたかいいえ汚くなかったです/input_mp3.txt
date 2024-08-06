@@ -1,0 +1,3 @@
+file /home/dd/文档/VideoGenerator/Case2-日语语料库-句型/17-この部屋は汚いでしたかいいえ汚くなかったです/body_mp3/77_question.mp3
+file /home/dd/文档/VideoGenerator/Case2-日语语料库-句型/silent.mp3
+file /home/dd/文档/VideoGenerator/Case2-日语语料库-句型/17-この部屋は汚いでしたかいいえ汚くなかったです/body_mp3/77_answer.mp3

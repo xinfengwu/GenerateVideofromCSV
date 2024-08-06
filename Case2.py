@@ -6,7 +6,7 @@ from myutils import *
 # 主函数
 def main():
     # 构建项目文件夹路径
-    root_folder_name = "Case2-新版中日标准日本语初级_句型_磨耳朵专项训练" 
+    root_folder_name = "Case2-日语语料库-场景会话"
     root_folder_path = os.path.join(os.getcwd(), root_folder_name)
     root_folder = create_folder(root_folder_path)
         
@@ -85,7 +85,8 @@ def main():
         new_body_presentation = create_ppt_with_csv(body_data, src_prs, 5, body_bg_img_path, body_output_ppt) # 复制模板中第5张幻灯片做主体slide
         # 转换主体pptx ---> pdf  ---> img
         body_pdf = os.path.join(pdf_folder, "body.pdf")
-        ppt_to_pdf_by_unoconv(body_output_ppt, body_pdf)
+        # ppt_to_pdf_by_unoconv(body_output_ppt, body_pdf)
+        ppt_to_pdf_by_soffice(body_output_ppt, pdf_folder, body_pdf)
         pdf_to_img(body_pdf, body_img_folder)
              
         # csv to mp3
@@ -173,7 +174,7 @@ def main():
         #delete_file(input_txt)
         
         #delete_folder(lessons_mp4_folder)
-        delete_folder(lesson_folder)
+        # delete_folder(lesson_folder)
         print("Done: ", lesson['lesson_name'])
         
     

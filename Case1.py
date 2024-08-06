@@ -7,7 +7,7 @@ from myutils import *
 def main():
     # 构建项目文件夹路径
     # 新中日标准日本语上册
-    root_folder_name = "Case1-新版中日标准日本语初级-单词" 
+    root_folder_name = "Case1-日语语料库-单词短语句型" 
     root_folder_path = os.path.join(os.getcwd(), root_folder_name)
     root_folder = create_folder(root_folder_path)
         
@@ -57,7 +57,8 @@ def main():
         body_pdf = os.path.join(pdf_folder, "body.pdf")
         covers_pdf = os.path.join(pdf_folder, "covers.pdf")
         
-        ppt_to_pdf_by_unoconv(body_output_ppt, body_pdf)
+        # ppt_to_pdf_by_unoconv(body_output_ppt, body_pdf)
+        ppt_to_pdf_by_soffice(body_output_ppt, pdf_folder, body_pdf)
         ppt_to_pdf_by_soffice(covers_output_ppt, pdf_folder, covers_pdf)
 
         body_img_folder = create_folder(os.path.join(section_folder, "body_img"))
@@ -71,8 +72,8 @@ def main():
         print("csv to mp3")
         body_mp3_folder = create_folder(os.path.join(section_folder, "body_mp3")) 
         for row in word_data:
-            #keyword = row['平假名注音'].strip()
-            keyword = row['日本語'].strip()
+            keyword = row['平假名注音'].strip()
+            # keyword = row['日本語'].strip()
             file_name = row['序号'].strip() + ".mp3"
             output_file = os.path.join(body_mp3_folder, file_name)
             text_to_mp3(keyword, lang, output_file)
@@ -106,15 +107,15 @@ def main():
     # video1 + video2 + ... to videos
         print("video1 + video2 + ... to videos")
         body_mp4_files = sort_filelist(body_mp4_folder, ".mp4")
-        # 将列表里的每个视频文件重复3次
-        repeated_mp4_files = repeat_elements(body_mp4_files, 3)
+        # 将列表里的每个视频文件重复2次
+        repeated_mp4_files = repeat_elements(body_mp4_files, 2)
         # print(repeated_mp4_files)
 
-        # 在每个列表的视频文件后插入2秒静音视频间隔
+        # 在每个列表的视频文件后插入1秒静音视频间隔
         silence_file = os.path.join(root_folder, "silence.mp4")
         gap_image_path = os.path.join(root_folder, "gap.jpg")
         if not os.path.exists(silence_file):
-            image_to_video(gap_image_path, resolution, 2, silence_file)
+            image_to_video(gap_image_path, resolution, 1, silence_file)
         result_files = add_elements_with_silence(repeated_mp4_files, silence_file)
         
         # 将封面、封底分别插入列表首尾位置
@@ -140,7 +141,7 @@ def main():
         #delete_file(input_txt)
         
         # delete_folder(section_mp4_folder)
-        delete_folder(section_folder)
+        #delete_folder(section_folder)
         
         print("Done: ", lesson['lesson_name'])
         
